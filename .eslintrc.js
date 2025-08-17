@@ -7,12 +7,12 @@ module.exports = {
   parserOptions: {
     parser: '@babel/eslint-parser',
     ecmaVersion: 2018, // Allows for the parsing of modern ECMAScript features
-    sourceType: 'module' // Allows for the use of imports
+    sourceType: 'module', // Allows for the use of imports
   },
 
   env: {
     browser: true,
-    'vue/setup-compiler-macros': true
+    'vue/setup-compiler-macros': true,
   },
 
   // Rules order is important, please avoid shuffling them
@@ -27,21 +27,19 @@ module.exports = {
     // 'plugin:vue/vue3-strongly-recommended', // Priority B: Strongly Recommended (Improving Readability)
     // 'plugin:vue/vue3-recommended', // Priority C: Recommended (Minimizing Arbitrary Choices and Cognitive Overhead)
 
-    'standard'
-    
+    'standard',
   ],
 
   plugins: [
     // https://eslint.vuejs.org/user-guide/#why-doesn-t-it-work-on-vue-files
     // required to lint *.vue files
     'vue',
-    
   ],
 
   globals: {
     ga: 'readonly', // Google Analytics
     process: 'readonly',
-    chrome: 'readonly'
+    chrome: 'readonly',
   },
 
   // add your custom rules here
@@ -66,17 +64,17 @@ module.exports = {
     'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
 
     // custom
-    'semi': [2, 'always'],
+    semi: [2, 'always'],
     'space-before-function-paren': [2, 'always'],
     'keyword-spacing': [2, { before: true, after: true }],
     'space-before-blocks': [2, 'always'],
     'comma-dangle': [2, 'always-multiline'],
     'no-console': 'off',
     'no-multi-str': 'off',
-    'curly': 1,
+    curly: 1,
     'no-undef': 'off',
 
     // plugins
-    'vue/multi-word-component-names': 'off'
-  }
+    'vue/multi-word-component-names': 'off',
+  },
 }

@@ -952,4 +952,4 @@ module.exports = {
     },
   },
   plugins: [],
-};
+}

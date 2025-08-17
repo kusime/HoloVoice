@@ -44,7 +44,6 @@ module.exports = {
       'coffee',
       'winter',
     ],
-
   },
   plugins: [
     '@tailwindcss/forms',
@@ -52,4 +51,4 @@ module.exports = {
     require('@tailwindcss/typography'),
     require('daisyui'),
   ],
-};
+}

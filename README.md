@@ -14,7 +14,7 @@ Nuxtwind Daisy is a starter template for Nuxt.js 3 + Tailwind CSS + Daisy UI wit
 
 Brag your modified version from this template. 💪
 
-- [jofftiquez.dev](https://jofftiquez.dev) 
+- [jofftiquez.dev](https://jofftiquez.dev)
 
 # Getting Started Guide
 
@@ -50,7 +50,6 @@ $ nuxt start
 ## Build
 
 You can choose to build it using the defaul strategy which is SSR, but you also have the option to generate static files so you can just upload your work in any static hosting service. The sample site of this repo is hosted in Vercel.
-
 
 ```bash
 # Build for production using SSR
