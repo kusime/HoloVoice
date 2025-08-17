@@ -1,5 +1,40 @@
 <template>
   <section class="space-y-6">
+    <!-- 提示词（可选） -->
+    <div class="card bg-base-200 shadow-sm">
+      <div class="card-body space-y-4">
+        <h3 class="card-title text-base">Prompt（可选）</h3>
+
+        <div class="form-control w-full">
+          <label class="label">
+            <span class="label-text">提示词文本（prompt_text）</span>
+          </label>
+          <textarea
+            v-model="form.prompt_text"
+            class="textarea textarea-bordered w-full"
+            rows="3"
+            placeholder="例如：这是最后一件了吧？嗯，这里确实有七十件。"
+          />
+          <p class="text-xs opacity-60 mt-1">
+            留空则按后端策略进入 Prompt-Free/No-Reference 文本模式（若模型/版本不支持请勿留空）。
+          </p>
+        </div>
+
+        <div class="form-control w-full">
+          <label class="label">
+            <span class="label-text">提示词语言（prompt_lang）</span>
+          </label>
+          <select v-model="form.prompt_lang" class="select select-bordered w-full">
+            <option value="zh">中文（zh）</option>
+            <option value="en">English（en）</option>
+            <option value="ja">日本語（ja）</option>
+            <option value="ko">한국어（ko）</option>
+            <option value="yue">粵語（yue）</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
     <!-- 采样与批处理 -->
     <div class="card bg-base-200 shadow-sm">
       <div class="card-body space-y-4">
