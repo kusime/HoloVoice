@@ -9,22 +9,25 @@
       <ChatMessage v-for="m in messages" :key="m.id" :msg="m" />
     </div>
 
-    <!-- 粘底输入条 -->
-    <div class="sticky left-0 right-0 bottom-0 md:bottom-2 z-30">
-      <div
-        class="mx-auto max-w-2xl w-full rounded-[2rem] border border-base-300/60 bg-base-100/55 backdrop-blur supports-[backdrop-filter]:backdrop-blur shadow-[0_12px_28px_rgba(0,0,0,0.28)] p-2"
-      >
-        <ChatComposer
-          class="w-full"
-          v-model:draft="form.text"
-          v-model:textLang="form.text_lang"
-          @send="handleSend"
-          @open-settings="open = true"
-        />
+    <!-- 粘底输入条（与上方消息区对齐：max-w-4xl + px-4 md:px-6） -->
+    <div class="sticky inset-x-0 bottom-0 md:bottom-2 z-30">
+      <div class="mx-auto w-full max-w-4xl">
+        <div
+          class="w-full rounded-[2rem] border border-base-300/60 bg-base-100/55 backdrop-blur supports-[backdrop-filter]:backdrop-blur shadow-[0_12px_28px_rgba(0,0,0,0.28)] p-2"
+        >
+          <ChatComposer
+            class="w-full"
+            v-model:draft="form.text"
+            v-model:textLang="form.text_lang"
+            @send="handleSend"
+            @open-settings="open = true"
+          />
+        </div>
+
+        <p class="mt-1 text-center text-xs opacity-50">
+          HoloVoice · © 2025 Kusime@GPT5 · MIT License · Powered by GPT-SoVITS
+        </p>
       </div>
-      <p class="mt-1 text-center text-xs opacity-50">
-        HoloVoice · © 2025 Kusime@GPT5 · MIT License · Powered by GPT-SoVITS
-      </p>
     </div>
 
     <!-- 设置侧边栏 -->
