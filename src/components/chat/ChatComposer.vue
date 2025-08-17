@@ -1,6 +1,6 @@
 <template>
-  <!-- 内层卡片容器 -->
-  <div class="rounded-2xl border border-base-300/60 bg-base-200/50 p-3 md:p-4 w-full">
+  <!-- 去掉内层卡片的背景/边框，避免双重背景；只保留内边距 -->
+  <div class="p-3 md:p-4 w-full bg-transparent">
     <!-- 文本输入区（自动增高，最多 4 行） -->
     <textarea
       ref="taRef"
@@ -13,7 +13,7 @@
     ></textarea>
 
     <!-- 控制条：左=设置；右=语言(自绘，自动上弹) + 发送 -->
-    <div class="mt-2 pt-2 border-t border-base-300/40 flex items-center justify-between gap-3">
+    <div class="mt-2 pt-2 border-t border-base-300/30 flex items-center justify-between gap-3">
       <!-- 设置 -->
       <button
         class="btn btn-ghost btn-sm h-10 rounded-xl px-3"
@@ -27,7 +27,7 @@
 
       <!-- 右侧操作 -->
       <div class="flex items-center gap-2">
-        <!-- 语言选择（DaisyUI dropdown + menu，自绘样式可跟随主题；自动决定弹出方向） -->
+        <!-- 语言选择（DaisyUI dropdown + menu，自绘样式可跟随主题；自动决定弹出方向，上弹优先） -->
         <div
           ref="dropdownRef"
           class="dropdown dropdown-end"
@@ -96,7 +96,7 @@
    * - @send
    * - @open-settings
    */
-  const props = defineProps<{ draft: string; textLang: string }>()
+  const props = defineProps<{ draft?: string; textLang?: string }>() // 接收为可选，SSR 更稳
   const emit = defineEmits<{
     (e: 'update:draft', v: string): void
     (e: 'update:textLang', v: string): void
@@ -107,19 +107,19 @@
   /** 语言选项 */
   const langs = ['zh', 'ja', 'en'] as const
 
-  /** 双向绑定 */
-  const draftProxy = computed({
-    get: () => props.draft,
-    set: (v) => emit('update:draft', v),
+  /** 双向绑定（加空值兜底） */
+  const draftProxy = computed<string>({
+    get: () => props.draft ?? '',
+    set: (v) => emit('update:draft', v ?? ''),
   })
-  const textLangProxy = computed({
-    get: () => props.textLang,
-    set: (v) => emit('update:textLang', v),
+  const textLangProxy = computed<string>({
+    get: () => props.textLang ?? 'zh',
+    set: (v) => emit('update:textLang', v ?? 'zh'),
   })
 
-  /** 发送行为 */
+  /** 发送行为（空值安全） */
   const taRef = ref<HTMLTextAreaElement | null>(null)
-  const canSend = computed(() => draftProxy.value.trim().length > 0)
+  const canSend = computed(() => (draftProxy.value ?? '').toString().trim().length > 0)
 
   function handleSend() {
     if (!canSend.value) return
@@ -128,7 +128,6 @@
 
   function onKeydown(e: KeyboardEvent) {
     // 组合输入（中文/日文等）下避免误发送
-    // @ts-expect-error isComposing 由浏览器事件注入
     if ((e as any).isComposing) return
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
@@ -163,7 +162,6 @@
     const spaceBelow = viewH - rect.bottom
     const spaceAbove = rect.top
     const need = (menu?.scrollHeight || 200) + 12 // 估算菜单高度 + 间距
-    // 如果下方空间不足且上方更充裕，则向上弹
     dropUp.value = spaceBelow < need && spaceAbove >= need
   }
 
@@ -187,7 +185,7 @@
   onMounted(() => {
     window.addEventListener('click', onWindowClick, { capture: true })
     window.addEventListener('resize', recomputeDropDir)
-    window.addEventListener('scroll', recomputeDropDir, true) // 捕获所有滚动容器
+    window.addEventListener('scroll', recomputeDropDir, true)
   })
   onBeforeUnmount(() => {
     window.removeEventListener('click', onWindowClick, { capture: true })

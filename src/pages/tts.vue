@@ -47,6 +47,7 @@
   import SettingsDrawer from '@/components/SettingsDrawer.vue'
   import { useTTSApi } from '@/composables/useTTSApi'
   import { usePresets } from '@/composables/usePresets'
+  import { ensureAudioWarmup } from '@/utils/audio-warmup'
 
   const { synthesize } = useTTSApi()
   const { save } = usePresets('tts-presets')
@@ -54,14 +55,7 @@
   /** 设置抽屉开关 */
   const open = ref(false)
 
-  /**
-   * 生成参数默认值 — 与后端 WebUI 的“最佳参数”对齐
-   * - text_lang / prompt_lang: 'zh'
-   * - prompt_text: "这是最后一件了吧？嗯，这里确实有七十件。"
-   * - speed_factor: 1.05
-   * - fragment_interval: 0.27
-   * - top_k: 6, top_p: 1, temperature: 0.65
-   */
+  /** 生成参数默认值 */
   const form = reactive({
     // 文本与语言
     text: '',
@@ -79,7 +73,7 @@
     batch_threshold: 0.75,
     split_bucket: true,
     parallel_infer: true,
-    fragment_interval: 0.27, // Pause Duration between Sentences (Seconds)
+    fragment_interval: 0.27,
 
     // 采样与控制
     speed_factor: 1.05,
@@ -92,7 +86,7 @@
     media_type: 'wav',
     streaming_mode: false,
 
-    // 兼容旧字段（后端不会用到也不影响）
+    // 兼容旧字段
     sdp_ratio: 0.2,
     noise_scale: 0.6,
     noise_scale_w: 0.9,
@@ -108,7 +102,7 @@
   const listEl = ref<HTMLDivElement | null>(null)
   const scroller = ref<HTMLElement | null>(null)
 
-  /** 是否跟随底部（用户滚上去看历史时暂停自动下拉） */
+  /** 是否跟随底部 */
   const followBottom = ref(true)
 
   function now() {
@@ -119,12 +113,10 @@
       .padStart(2, '0')}`
   }
 
-  /** 判断是否接近底部 */
   function isNearBottom(el: HTMLElement, threshold = 120) {
     return el.scrollTop + el.clientHeight >= el.scrollHeight - threshold
   }
 
-  /** 滚动到底部 */
   function scrollToBottom(immediate = false) {
     nextTick(() => {
       const el = scroller.value
@@ -149,6 +141,9 @@
     }
     el.addEventListener('scroll', onScroll, { passive: true })
     removeScrollListener = () => el.removeEventListener('scroll', onScroll)
+
+    // ✅ 页面挂载后做一次静默“蓝牙预热”（使用新默认 0.4s）
+    ensureAudioWarmup()
   })
 
   onBeforeUnmount(() => {
@@ -203,7 +198,8 @@
       if (!form.ref_audio_path || !form.ref_audio_path.trim()) {
         throw new Error('请先在「设置 → 参考音频」里设置 ref_audio_path')
       }
-      // synthesize: Promise<string>（ObjectURL）
+
+      // 开始合成
       const url = await synthesize({
         text,
         text_lang: form.text_lang,
@@ -228,6 +224,10 @@
         streaming_mode: form.streaming_mode,
         seed: keepRandom.value ? -1 : seedInput.value ?? -1,
       })
+
+      // ✅ 真正播放前再确保一次预热（吃默认 0.4s）
+      await ensureAudioWarmup()
+
       const last = messages.value.find((m) => m.id === pendingId)
       if (!last) return
       last.status = 'done'
@@ -239,7 +239,6 @@
         last.status = 'error'
         last.errorMsg = e?.message || '合成失败'
       }
-      // 引导用户打开设置页填 ref_audio_path
       if (String(e?.message || '').includes('ref_audio_path')) {
         open.value = true
       }
