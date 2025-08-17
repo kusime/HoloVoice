@@ -29,7 +29,7 @@
           <AudioBubble
             :src="msg.audioUrl"
             :autoplay="!!msg.autoPlay"
-            :download="`tts_${msg.id || Date.now()}.wav`"
+            :filename="`tts_${msg.id || Date.now()}.wav`"
           />
         </div>
 
