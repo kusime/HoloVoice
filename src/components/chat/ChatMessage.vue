@@ -15,13 +15,14 @@
         <!-- 2) 错误气泡 -->
         <div
           v-else-if="msg.status === 'error'"
-          class="rounded-2xl bg-error text-error-content px-4 py-3 shadow flex items-start gap-2"
+          class="rounded-2xl bg-error/10 border border-error/30 text-error-content px-4 py-3 shadow"
         >
-          <i class="la la-exclamation-triangle text-xl"></i>
-          <div class="font-mono text-sm break-all">{{ msg.errorMsg }}</div>
+          <p class="whitespace-pre-wrap leading-relaxed">
+            {{ msg.errorMsg || '出错了' }}
+          </p>
         </div>
 
-        <!-- 3) 语音气泡：给出明确宽度，避免跟随内容收缩 -->
+        <!-- 3) 语音气泡 -->
         <div
           v-else-if="msg.audioUrl"
           class="rounded-2xl bg-base-200/70 border border-base-300/50 p-3 shadow w-[min(88vw,42rem)]"
@@ -33,20 +34,20 @@
           />
         </div>
 
-        <!-- 4) 文本气泡（保持自然宽度） -->
+        <!-- 4) 文本气泡（主题中性：跟随 base 语义色，而非固定 primary 紫） -->
         <div
           v-else
           class="rounded-2xl px-4 py-3 shadow"
           :class="
             msg.role === 'user'
-              ? 'bg-primary text-primary-content'
-              : 'bg-base-200 border border-base-300/50'
+              ? 'bg-base-200/80 border border-base-300/60 text-base-content'
+              : 'bg-base-200 border border-base-300/50 text-base-content'
           "
         >
           <p class="whitespace-pre-wrap leading-relaxed">{{ msg.text }}</p>
         </div>
 
-        <!-- 时间角标：放在外层，避免被内部结构影响 -->
+        <!-- 时间角标 -->
         <span
           v-if="msg.time"
           class="absolute text-xs opacity-60 pointer-events-none select-none"
@@ -60,9 +61,9 @@
 </template>
 
 <script setup lang="ts">
-  import AudioBubble from './AudioBubble.vue'
+  import AudioBubble from '@/components/chat/AudioBubble.vue'
 
-  export type ChatMsg = {
+  export interface ChatMsg {
     id?: string
     role: 'user' | 'assistant'
     text?: string
@@ -77,5 +78,5 @@
 </script>
 
 <style scoped>
-  /* 时间角标依赖外层 relative 定位；无需额外样式 */
+  /* 完全使用 daisyUI 语义色（base 系列）以跟随主题；不写死任何调色值 */
 </style>
