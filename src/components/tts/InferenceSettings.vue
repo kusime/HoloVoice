@@ -8,9 +8,7 @@
         <ParamSlider label="Batch Size" v-model="form.batch_size" :min="1" :max="200" :step="1" />
 
         <div class="form-control w-full">
-          <label class="label">
-            <span class="label-text">Sampling Steps</span>
-          </label>
+          <label class="label"><span class="label-text">Sampling Steps</span></label>
           <select v-model="form.sample_steps" class="select select-bordered w-full">
             <option :value="4">4</option>
             <option :value="8">8</option>
@@ -22,9 +20,7 @@
         </div>
 
         <div class="form-control w-full">
-          <label class="label">
-            <span class="label-text">text_split_method</span>
-          </label>
+          <label class="label"><span class="label-text">text_split_method</span></label>
           <select v-model="form.text_split_method" class="select select-bordered w-full">
             <option value="cut0">cut0</option>
             <option value="cut5">cut5</option>
@@ -32,21 +28,27 @@
         </div>
 
         <ParamSlider
-          label="Segment Interval (Seconds)"
+          label="Pause Duration between Sentences (Seconds)"
           v-model="form.fragment_interval"
           :min="0"
           :max="1"
           :step="0.01"
         />
 
-        <ParamSlider label="语速" v-model="form.speed_factor" :min="0.5" :max="1.65" :step="0.01" />
+        <ParamSlider
+          label="Speech rate"
+          v-model="form.speed_factor"
+          :min="0.5"
+          :max="1.65"
+          :step="0.01"
+        />
       </div>
     </div>
 
     <!-- 取样控制 -->
     <div class="card bg-base-200 shadow-sm">
       <div class="card-body space-y-4">
-        <h3 class="card-title text-base">Sampling Controls</h3>
+        <h3 class="card-title text-base">GPT sampling parameters</h3>
         <ParamSlider label="top_k" v-model="form.top_k" :min="0" :max="100" :step="1" />
         <ParamSlider label="top_p" v-model="form.top_p" :min="0" :max="1" :step="0.01" />
         <ParamSlider
@@ -103,9 +105,7 @@
         </div>
 
         <div class="form-control w-full">
-          <label class="label">
-            <span class="label-text">媒体格式</span>
-          </label>
+          <label class="label"><span class="label-text">媒体格式</span></label>
           <select v-model="form.media_type" class="select select-bordered w-full">
             <option value="wav">wav</option>
             <option value="aac">aac</option>
@@ -122,9 +122,7 @@
         </div>
 
         <div class="form-control w-full">
-          <label class="label">
-            <span class="label-text">seed</span>
-          </label>
+          <label class="label"><span class="label-text">seed</span></label>
           <input
             type="number"
             class="input input-bordered w-full font-mono"
@@ -156,7 +154,7 @@
 
   const isOgg = computed(() => form.value.media_type === 'ogg')
 
-  // 当选择 ogg 时，强制并锁定 streaming_mode = true
+  // 选择 ogg 时强制流式
   watch(
     () => form.value.media_type,
     (type) => {

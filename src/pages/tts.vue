@@ -23,9 +23,7 @@
         />
       </div>
       <p class="mt-1 text-center text-xs opacity-50">
-        HoloVoice · © 2025
-        <a href="mailto:kusime@GPT5" class="underline-offset-2 hover:underline">Kusime@GPT5</a>
-        · MIT License · Powered by GPT-SoVITS
+        HoloVoice · © 2025 Kusime@GPT5 · MIT License · Powered by GPT-SoVITS
       </p>
     </div>
 
@@ -53,33 +51,44 @@
   /** 设置抽屉开关 */
   const open = ref(false)
 
-  /** 生成参数（补齐 TTSRequest 所有必需字段；恢复 ref_audio_path 默认值） */
+  /**
+   * 生成参数默认值 — 与后端 WebUI 的“最佳参数”对齐
+   * - text_lang / prompt_lang: 'zh'
+   * - prompt_text: "这是最后一件了吧？嗯，这里确实有七十件。"
+   * - speed_factor: 1.05
+   * - fragment_interval: 0.27
+   * - top_k: 6, top_p: 1, temperature: 0.65
+   */
   const form = reactive({
     // 文本与语言
     text: '',
-    text_lang: 'ja',
-    prompt_lang: 'ja',
-    prompt_text: '',
-    // 参考音频（恢复默认：z.refs/main.wav）
+    text_lang: 'zh',
+    prompt_lang: 'zh',
+    // 默认提示文本（中文）
+    prompt_text: '这是最后一件了吧？嗯，这里确实有七十件。',
+    // 参考音频
     ref_audio_path: 'z.refs/main.wav',
     aux_ref_audio_paths: [] as string[],
+
     // 切分与批处理
     text_split_method: 'cut5',
     batch_size: 60,
     batch_threshold: 0.75,
     split_bucket: true,
     parallel_infer: true,
-    fragment_interval: 0.24,
+    fragment_interval: 0.27, // Pause Duration between Sentences (Seconds)
+
     // 采样与控制
     speed_factor: 1.05,
-    top_k: 5,
+    top_k: 6,
     top_p: 1,
-    temperature: 0.9,
+    temperature: 0.65,
     repetition_penalty: 1.25,
     sample_steps: 32,
     super_sampling: false,
     media_type: 'wav',
     streaming_mode: false,
+
     // 兼容旧字段（后端不会用到也不影响）
     sdp_ratio: 0.2,
     noise_scale: 0.6,
@@ -122,9 +131,12 @@
     })
   }
 
+  let removeScrollListener: (() => void) | null = null
+
   onMounted(() => {
     const el = scroller.value
     if (!el) return
+
     // 初始贴底
     scrollToBottom(true)
 
@@ -133,10 +145,11 @@
       followBottom.value = isNearBottom(scroller.value)
     }
     el.addEventListener('scroll', onScroll, { passive: true })
+    removeScrollListener = () => el.removeEventListener('scroll', onScroll)
+  })
 
-    onBeforeUnmount(() => {
-      el.removeEventListener('scroll', onScroll)
-    })
+  onBeforeUnmount(() => {
+    removeScrollListener?.()
   })
 
   // 消息条数变化：若在底部附近则自动贴底
