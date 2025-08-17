@@ -1,60 +1,81 @@
 <template>
-  <div class="chat" :class="msg.role === 'user' ? 'chat-end' : 'chat-start'">
-    <div class="chat-header mb-1">
-      <span class="opacity-70 text-xs">{{ msg.time }}</span>
-    </div>
-
-    <div v-if="msg.role === 'user'" class="chat-bubble chat-bubble-primary whitespace-pre-wrap">
-      {{ msg.text }}
-    </div>
-
-    <div v-else class="chat-bubble bg-base-200">
-      <template v-if="msg.status === 'pending'">
-        <span class="loading loading-dots loading-sm"></span> 合成中…
-      </template>
-
-      <template v-else-if="msg.status === 'error'">
-        <div class="text-error text-sm break-all">
-          {{ msg.errorMsg || '合成失败' }}
+  <div class="w-full">
+    <!-- 左右对齐 -->
+    <div :class="msg.role === 'user' ? 'flex justify-end' : 'flex justify-start'">
+      <div class="relative group max-w-[min(80%,42rem)]">
+        <!-- 1) 合成中 -->
+        <div
+          v-if="msg.status === 'pending'"
+          class="rounded-2xl bg-base-200/70 border border-base-300/50 px-4 py-3 shadow flex items-center gap-2"
+        >
+          <span class="loading loading-spinner loading-sm"></span>
+          <span class="opacity-80">合成中…</span>
         </div>
-      </template>
 
-      <template v-else>
-        <div class="space-y-2">
-          <audio ref="player" :src="msg.audioUrl" controls class="w-full"></audio>
-          <div class="flex gap-2">
-            <a :href="msg.audioUrl" :download="`tts_${msg.id}.wav`" class="btn btn-xs">下载</a>
-            <button class="btn btn-xs" @click="player?.play()">播放</button>
-          </div>
+        <!-- 2) 错误气泡 -->
+        <div
+          v-else-if="msg.status === 'error'"
+          class="rounded-2xl bg-error text-error-content px-4 py-3 shadow flex items-start gap-2"
+        >
+          <i class="la la-exclamation-triangle text-xl"></i>
+          <div class="font-mono text-sm break-all">{{ msg.errorMsg }}</div>
         </div>
-      </template>
+
+        <!-- 3) 语音气泡：给出明确宽度，避免跟随内容收缩 -->
+        <div
+          v-else-if="msg.audioUrl"
+          class="rounded-2xl bg-base-200/70 border border-base-300/50 p-3 shadow w-[min(88vw,42rem)]"
+        >
+          <AudioBubble
+            :src="msg.audioUrl"
+            :autoplay="!!msg.autoPlay"
+            :download="`tts_${msg.id || Date.now()}.wav`"
+          />
+        </div>
+
+        <!-- 4) 文本气泡（保持自然宽度） -->
+        <div
+          v-else
+          class="rounded-2xl px-4 py-3 shadow"
+          :class="
+            msg.role === 'user'
+              ? 'bg-primary text-primary-content'
+              : 'bg-base-200 border border-base-300/50'
+          "
+        >
+          <p class="whitespace-pre-wrap leading-relaxed">{{ msg.text }}</p>
+        </div>
+
+        <!-- 时间角标：放在外层，避免被内部结构影响 -->
+        <span
+          v-if="msg.time"
+          class="absolute text-xs opacity-60 pointer-events-none select-none"
+          :class="msg.role === 'user' ? 'right-2 -bottom-5' : 'left-2 -bottom-5'"
+        >
+          {{ msg.time }}
+        </span>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-  export interface ChatMsg {
-    id: string
+  import AudioBubble from './AudioBubble.vue'
+
+  export type ChatMsg = {
+    id?: string
     role: 'user' | 'assistant'
     text?: string
-    status?: 'pending' | 'done' | 'error'
     audioUrl?: string
+    status?: 'pending' | 'done' | 'error'
     errorMsg?: string
-    time: string
+    time?: string
     autoPlay?: boolean
   }
 
   const props = defineProps<{ msg: ChatMsg }>()
-  const player = ref<HTMLAudioElement | null>(null)
-
-  watch(
-    () => props.msg,
-    (m) => {
-      if (m.role === 'assistant' && m.status === 'done' && m.autoPlay) {
-        // 等下一帧再播，确保 src 就绪
-        nextTick(() => player.value?.play().catch(() => {}))
-      }
-    },
-    { deep: true, immediate: true }
-  )
 </script>
+
+<style scoped>
+  /* 时间角标依赖外层 relative 定位；无需额外样式 */
+</style>

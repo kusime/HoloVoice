@@ -1,5 +1,6 @@
 <template>
-  <div class="navbar bg-base-200/60 backdrop-blur border-b border-base-300">
+  <!-- sticky 而不是 fixed：既不会把内容顶上去，也不会在首屏覆盖内容 -->
+  <div class="navbar sticky top-0 z-50 bg-base-200/70 backdrop-blur border-b border-base-300/50">
     <div class="flex-1">
       <NuxtLink to="/" class="btn btn-ghost text-lg font-bold">TTS Studio</NuxtLink>
     </div>
@@ -31,6 +32,7 @@
     </div>
   </div>
 </template>
+
 <script setup lang="ts">
   function toggleTheme(e: Event) {
     const checked = (e.target as HTMLInputElement).checked

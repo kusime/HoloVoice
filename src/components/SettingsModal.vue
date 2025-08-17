@@ -1,30 +1,33 @@
 <template>
-  <dialog :open="open" class="modal">
-    <div class="modal-box max-w-5xl">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="font-bold text-lg">高级设置</h3>
-        <form method="dialog">
-          <button class="btn btn-sm" @click.prevent="open = false">关闭</button>
-        </form>
-      </div>
+  <Teleport to="body">
+    <Transition name="fade">
+      <div
+        v-if="open"
+        class="fixed inset-0 z-50 bg-black/30"
+        @click.self="$emit('update:open', false)"
+      >
+        <!-- 右侧抽屉 -->
+        <aside
+          class="absolute right-0 top-0 h-full w-[380px] md:w-[420px] bg-base-200/95 backdrop-blur border-l border-base-300/60 shadow-2xl rounded-l-2xl overflow-y-auto"
+        >
+          <div class="p-4 space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="font-bold text-lg">高级设置</h3>
+              <button class="btn btn-sm" @click="$emit('update:open', false)">关闭</button>
+            </div>
 
-      <div class="grid lg:grid-cols-2 gap-4">
-        <TTSForm v-model:form="form" />
-        <ReferencePaths v-model:form="form" />
-        <div class="lg:col-span-2">
-          <InferenceSettings
-            v-model:form="form"
-            v-model:keepRandom="keepRandom"
-            v-model:seedInput="seedInput"
-          />
-        </div>
+            <TTSForm v-model:form="form" />
+            <ReferencePaths v-model:form="form" />
+            <InferenceSettings
+              v-model:form="form"
+              v-model:keepRandom="keepRandom"
+              v-model:seedInput="seedInput"
+            />
+          </div>
+        </aside>
       </div>
-    </div>
-
-    <form method="dialog" class="modal-backdrop">
-      <button @click.prevent="open = false">close</button>
-    </form>
-  </dialog>
+    </Transition>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
@@ -37,3 +40,14 @@
   const keepRandom = defineModel<boolean>('keepRandom', { default: true })
   const seedInput = defineModel<number | null>('seedInput', { default: 3073564471 })
 </script>
+
+<style>
+  .fade-enter-active,
+  .fade-leave-active {
+    transition: opacity 0.15s ease;
+  }
+  .fade-enter-from,
+  .fade-leave-to {
+    opacity: 0;
+  }
+</style>
