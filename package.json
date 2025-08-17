@@ -49,5 +49,6 @@
   "bugs": {
     "url": "https://github.com/ossphilippines/nuxtwind-daisy/issues"
   },
-  "homepage": "https://github.com/ossphilippines/nuxtwind-daisy#readme"
+  "homepage": "https://github.com/ossphilippines/nuxtwind-daisy#readme",
+  "packageManager": "yarn@4.4.1"
 }
