@@ -105,7 +105,7 @@
   }>()
 
   /** 语言选项 */
-  const langs = ['zh', 'ja', 'en'] as const
+  const langs = ['zh', 'ja', 'en', 'auto'] as const
 
   /** 双向绑定（加空值兜底） */
   const draftProxy = computed<string>({
