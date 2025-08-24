@@ -13,7 +13,7 @@
     <div class="sticky inset-x-0 bottom-0 md:bottom-2 z-30">
       <div class="mx-auto w-full max-w-4xl">
         <div
-          class="w-full rounded-[2rem] border border-base-300/60 bg-base-100/55 backdrop-blur supports-[backdrop-filter]:backdrop-blur shadow-[0_12px_28px_rgba(0,0,0,0.28)] p-2"
+          class="w-full rounded-[2rem] border border-base-300/60 bg-base-100/55 backdrop-blur supports-[backdrop-filter]:backdrop-blur shadow-sm p-2"
         >
           <ChatComposer
             class="w-full"

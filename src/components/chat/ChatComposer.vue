@@ -1,102 +1,67 @@
 <template>
-  <!-- 去掉内层卡片的背景/边框，避免双重背景；只保留内边距 -->
-  <div class="p-3 md:p-4 w-full bg-transparent">
-    <!-- 文本输入区（自动增高，最多 4 行） -->
-    <textarea
-      ref="taRef"
-      v-model="draftProxy"
-      class="textarea textarea-bordered w-full min-h-[72px] max-h-44 resize-none overflow-auto"
-      placeholder="输入要朗读的文本…"
-      autocomplete="off"
-      @keydown="onKeydown"
-      @input="autoResize"
-    ></textarea>
+  <div class="p-3 md:p-2 w-full bg-transparent">
+    <div class="rounded-3xl">
+      <!-- 文本输入 -->
+      <textarea
+        ref="taRef"
+        v-model="draftProxy"
+        class="-translate-y-[2px] no-scrollbar w-full min-w-0 bg-transparent outline-none focus:outline-none focus:ring-0 border-none shadow-none resize-none overflow-auto placeholder:opacity-60 text-base leading-6 md:leading-7 transition-all duration-200 ease-out relative z-0 cursor-text"
+        :placeholder="placeholder"
+        autocomplete="off"
+        @keydown="onKeydown"
+        @input="onInput"
+        :style="{
+          height: textareaHeight + 'px',
+          maxHeight: EXPANDED_HEIGHT_PX + 'px',
+          paddingLeft: padLeft + 'px',
+          paddingRight: padRight + 'px',
+          paddingTop: padTop + 'px',
+          paddingBottom: padBottom + 'px',
+        }"
+      />
 
-    <!-- 控制条：左=设置；右=语言(自绘，自动上弹) + 发送 -->
-    <div class="mt-2 pt-2 border-t border-base-300/30 flex items-center justify-between gap-3">
-      <!-- 设置 -->
-      <button
-        class="btn btn-ghost btn-sm h-10 rounded-xl px-3"
-        title="打开设置"
-        type="button"
-        aria-label="打开设置"
-        @click="emit('open-settings')"
+      <!-- 工具栏（叠在文本之上）：容器不吃事件，按钮开启事件 -->
+      <div
+        class="relative z-20 flex items-center justify-between h-10 transition-[margin] duration-200 ease-out pointer-events-none select-none"
+        :style="{ marginTop: toolbarOffsetPx }"
       >
-        <i class="la la-cog text-lg"></i>
-      </button>
-
-      <!-- 右侧操作 -->
-      <div class="flex items-center gap-2">
-        <!-- 语言选择（DaisyUI dropdown + menu，自绘样式可跟随主题；自动决定弹出方向，上弹优先） -->
-        <div
-          ref="dropdownRef"
-          class="dropdown dropdown-end"
-          :class="{ 'dropdown-open': langOpen, 'dropdown-top': dropUp }"
-          @keydown.escape.prevent.stop="langOpen = false"
-        >
-          <button
-            ref="buttonRef"
-            type="button"
-            class="btn h-10 rounded-xl px-3 min-w-[88px] justify-between"
-            aria-haspopup="listbox"
-            :aria-expanded="langOpen ? 'true' : 'false'"
-            aria-label="选择语言"
-            @click="toggleDropdown"
-          >
-            <span class="uppercase">{{ textLangProxy }}</span>
-            <i class="la la-angle-down text-base opacity-80"></i>
-          </button>
-
-          <ul
-            ref="menuRef"
-            tabindex="0"
-            role="listbox"
-            class="dropdown-content menu p-2 shadow-lg bg-base-100 rounded-xl w-28 ring-1 ring-base-300/50"
-            :class="dropUp ? 'mb-2' : 'mt-2'"
-          >
-            <li
-              v-for="opt in langs"
-              :key="opt"
-              role="option"
-              :aria-selected="textLangProxy === opt"
-            >
-              <a
-                class="uppercase"
-                :class="textLangProxy === opt ? 'active' : ''"
-                @click.prevent="selectLang(opt)"
-                >{{ opt }}</a
-              >
-            </li>
-          </ul>
-        </div>
-
-        <!-- 发送 -->
         <button
-          class="btn btn-primary h-10 rounded-xl px-4 min-w-[88px]"
+          class="btn btn-ghost btn-sm h-10 rounded-xl px-3 pointer-events-auto"
+          title="打开设置"
           type="button"
-          :disabled="!canSend"
+          aria-label="打开设置"
+          @click.stop="emit('open-settings')"
+        >
+          <i class="la la-cog text-lg"></i>
+        </button>
+
+        <button
+          class="btn btn-primary btn-sm h-8 w-8 min-w-[2.5rem] p-0 rounded-xl pointer-events-auto"
+          type="button"
+          :disabled="!canSend || loading"
           @click="handleSend"
           aria-label="发送"
         >
-          发送
+          <!-- 一个右箭头，通过旋转成为“向上” -->
+          <i
+            v-if="!loading"
+            class="la la-arrow-right text-lg transition-transform duration-200 ease-out"
+            :style="{ transform: canSend ? 'rotate(-90deg)' : 'rotate(0deg)' }"
+          ></i>
+          <span v-else class="loading loading-spinner loading-xs"></span>
         </button>
       </div>
     </div>
+
+    <p v-if="error" class="text-error text-sm mt-2">{{ error }}</p>
   </div>
 </template>
 
 <script setup lang="ts">
-  import { computed, nextTick, onMounted, onBeforeUnmount, ref, watch } from 'vue'
+  import { computed, ref, watch, onMounted } from 'vue'
+  import type { PipelinePayload } from '~/types/pipeline'
 
-  /**
-   * v-model：
-   * - v-model:draft    <string>
-   * - v-model:textLang <'zh' | 'ja' | 'en'>
-   * 事件：
-   * - @send
-   * - @open-settings
-   */
-  const props = defineProps<{ draft?: string; textLang?: string }>() // 接收为可选，SSR 更稳
+  const props = defineProps<{ draft?: string; textLang?: string }>()
   const emit = defineEmits<{
     (e: 'update:draft', v: string): void
     (e: 'update:textLang', v: string): void
@@ -104,10 +69,9 @@
     (e: 'open-settings'): void
   }>()
 
-  /** 语言选项 */
-  const langs = ['zh', 'ja', 'en', 'auto'] as const
+  const placeholder = '输入要朗读的文本…'
 
-  /** 双向绑定（加空值兜底） */
+  /** v-model */
   const draftProxy = computed<string>({
     get: () => props.draft ?? '',
     set: (v) => emit('update:draft', v ?? ''),
@@ -117,79 +81,130 @@
     set: (v) => emit('update:textLang', v ?? 'zh'),
   })
 
-  /** 发送行为（空值安全） */
-  const taRef = ref<HTMLTextAreaElement | null>(null)
-  const canSend = computed(() => (draftProxy.value ?? '').toString().trim().length > 0)
+  /** —— 可调参数 —— */
+  const THRESHOLD_COUNT = 36 // 触发展开字符数阈值
+  const MIN_HEIGHT_PX = 56
+  const EXPAND_DELTA_PX = 45
+  const EXPANDED_HEIGHT_PX = MIN_HEIGHT_PX + EXPAND_DELTA_PX
 
-  function handleSend() {
-    if (!canSend.value) return
-    emit('send')
+  // 紧凑态左右留白（为按钮让位）
+  const PAD_L_COMPACT = 48
+  const PAD_R_COMPACT = 56
+  // 展开态左右留白（文本吃满）
+  const PAD_L_EXPANDED = 12
+  const PAD_R_EXPANDED = 12
+  // 垂直内边距：紧凑态让首行居中（行高约 24px）
+  const COMPACT_LINE_HEIGHT_PX = 24
+  const PAD_T_COMPACT = Math.max(0, Math.round((MIN_HEIGHT_PX - COMPACT_LINE_HEIGHT_PX) / 2)) // ≈16
+  const PAD_B_COMPACT = PAD_T_COMPACT
+  const PAD_T_EXPANDED = 8
+  const PAD_B_EXPANDED = 8
+
+  /** 两态：紧凑/展开（仅字符数判断） */
+  const expanded = ref(false)
+  const textareaHeight = ref<number>(MIN_HEIGHT_PX)
+
+  const padLeft = computed(() => (expanded.value ? PAD_L_EXPANDED : PAD_L_COMPACT))
+  const padRight = computed(() => (expanded.value ? PAD_R_EXPANDED : PAD_R_COMPACT))
+  const padTop = computed(() => (expanded.value ? PAD_T_EXPANDED : PAD_T_COMPACT))
+  const padBottom = computed(() => (expanded.value ? PAD_B_EXPANDED : PAD_B_COMPACT))
+
+  /** 工具栏位置：紧凑态与文本同一行；展开态落到下方 */
+  const toolbarOffsetPx = computed(() => (expanded.value ? '8px' : `-${MIN_HEIGHT_PX}px`))
+
+  /** 输入监听：字符数 ≥ 阈值 → 展开；否则收起。高度两档固定。 */
+  function updateLayoutByCount() {
+    const len = (draftProxy.value ?? '').length
+    expanded.value = len >= THRESHOLD_COUNT
+    textareaHeight.value = expanded.value ? EXPANDED_HEIGHT_PX : MIN_HEIGHT_PX
+  }
+  function onInput() {
+    updateLayoutByCount()
+  }
+  watch(draftProxy, updateLayoutByCount)
+  onMounted(() => updateLayoutByCount())
+
+  /** 发送逻辑（与你现有服务兼容） */
+  const canSend = computed(() => (draftProxy.value ?? '').toString().trim().length > 0)
+  const loading = ref(false)
+  const error = ref<string | null>(null)
+
+  const defaults = {
+    ref_audio_path: 'z.refs/main.wav',
+    aux_ref_audio_paths: [] as string[],
+    prompt_text: '这是最后一件了吧？嗯，这里确实有七十件。',
+    prompt_lang: 'zh',
+    text_split_method: 'cut5',
+    batch_size: 60,
+    batch_threshold: 0.75,
+    split_bucket: true,
+    parallel_infer: true,
+    fragment_interval: 0.27,
+    speed_factor: 1.05,
+    top_k: 6,
+    top_p: 1.0,
+    temperature: 0.65,
+    repetition_penalty: 1.25,
+    sample_steps: 32,
+    super_sampling: false,
+    media_type: 'wav',
+    streaming_mode: false,
+    seed: -1,
+  }
+
+  async function handleSend() {
+    if (!canSend.value || loading.value) return
+    loading.value = true
+    error.value = null
+    try {
+      const text = (draftProxy.value ?? '').toString().trim()
+      const lang = (textLangProxy.value ?? 'zh') as string
+      const payload: PipelinePayload = { text, text_lang: lang, ...defaults }
+      const call = useTtsPipeline()
+      await call(payload)
+      emit('send')
+    } catch (e: any) {
+      error.value = e?.message || String(e)
+    } finally {
+      loading.value = false
+    }
   }
 
   function onKeydown(e: KeyboardEvent) {
-    // 组合输入（中文/日文等）下避免误发送
+    // Enter 发送 / Shift+Enter 换行
     if ((e as any).isComposing) return
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSend()
     }
   }
-
-  /** 文本域自动增高（上限 4 行 ≈ max-h-44） */
-  function autoResize() {
-    const el = taRef.value
-    if (!el) return
-    el.style.height = 'auto'
-    const maxPx = parseInt(getComputedStyle(el).maxHeight || '176', 10) || 176
-    el.style.height = Math.min(el.scrollHeight, maxPx) + 'px'
-  }
-  onMounted(() => nextTick(autoResize))
-  watch(draftProxy, () => nextTick(autoResize))
-
-  /** 自绘下拉：开关、外点关闭、自动方向（优先向上） */
-  const langOpen = ref(false)
-  const dropUp = ref(true) // 粘底区域默认上弹
-  const dropdownRef = ref<HTMLElement | null>(null)
-  const buttonRef = ref<HTMLElement | null>(null)
-  const menuRef = ref<HTMLElement | null>(null)
-
-  function recomputeDropDir() {
-    const btn = buttonRef.value
-    const menu = menuRef.value
-    if (!btn) return
-    const rect = btn.getBoundingClientRect()
-    const viewH = window.innerHeight
-    const spaceBelow = viewH - rect.bottom
-    const spaceAbove = rect.top
-    const need = (menu?.scrollHeight || 200) + 12 // 估算菜单高度 + 间距
-    dropUp.value = spaceBelow < need && spaceAbove >= need
-  }
-
-  function toggleDropdown() {
-    langOpen.value = !langOpen.value
-    if (langOpen.value) nextTick(recomputeDropDir)
-  }
-
-  function selectLang(opt: (typeof langs)[number]) {
-    textLangProxy.value = opt
-    langOpen.value = false
-  }
-
-  // 点击外部关闭
-  function onWindowClick(e: MouseEvent) {
-    const root = dropdownRef.value
-    if (!root) return
-    if (!root.contains(e.target as Node)) langOpen.value = false
-  }
-
-  onMounted(() => {
-    window.addEventListener('click', onWindowClick, { capture: true })
-    window.addEventListener('resize', recomputeDropDir)
-    window.addEventListener('scroll', recomputeDropDir, true)
-  })
-  onBeforeUnmount(() => {
-    window.removeEventListener('click', onWindowClick, { capture: true })
-    window.removeEventListener('resize', recomputeDropDir)
-    window.removeEventListener('scroll', recomputeDropDir, true)
-  })
 </script>
+
+<style scoped>
+  /* placeholder 左对齐 */
+  textarea::-webkit-input-placeholder {
+    text-align: left !important;
+  }
+  textarea:-moz-placeholder {
+    text-align: left !important;
+  } /* Firefox 18- */
+  textarea::-moz-placeholder {
+    text-align: left !important;
+  } /* Firefox 19+ */
+  textarea:-ms-input-placeholder {
+    text-align: left !important;
+  } /* IE10+ */
+  textarea::placeholder {
+    text-align: left !important;
+  }
+
+  /* 隐藏滚动条但保留滚动能力 */
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+</style>

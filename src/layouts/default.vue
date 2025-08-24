@@ -47,7 +47,7 @@
 
   const route = useRoute()
   const mainClass = computed(() => {
-    const isTTS = route.path?.startsWith('/tts')
+    const isTTS = route.path?.startsWith('/')
 
     if (isTTS) {
       // 外层不滚动：h-full + overflow-hidden；顶部用 pt-12 让出 Header 的 48px
