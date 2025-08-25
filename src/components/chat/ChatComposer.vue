@@ -5,7 +5,7 @@
       <textarea
         ref="taRef"
         v-model="draftProxy"
-        class="-translate-y-[2px] no-scrollbar w-full min-w-0 bg-transparent outline-none focus:outline-none focus:ring-0 border-none shadow-none resize-none overflow-auto placeholder:opacity-60 text-base leading-6 md:leading-7 transition-all duration-200 ease-out relative z-0 cursor-text"
+        class="no-scrollbar w-full min-w-0 bg-transparent outline-none focus:outline-none focus:ring-0 border-none shadow-none resize-none overflow-auto placeholder:opacity-60 text-base leading-6 md:leading-7 transition-all duration-200 ease-out relative z-0 cursor-text"
         :placeholder="placeholder"
         autocomplete="off"
         @keydown="onKeydown"
@@ -36,7 +36,7 @@
         </button>
 
         <button
-          class="btn btn-primary btn-sm h-8 w-8 min-w-[2.5rem] p-0 rounded-xl pointer-events-auto"
+          class="btn btn-circle btn-primary btn-sm size-[3em] p-0 pointer-events-auto"
           type="button"
           :disabled="!canSend || loading"
           @click="handleSend"
@@ -83,7 +83,7 @@
 
   /** —— 可调参数 —— */
   const THRESHOLD_COUNT = 36 // 触发展开字符数阈值
-  const MIN_HEIGHT_PX = 56
+  const MIN_HEIGHT_PX = 66
   const EXPAND_DELTA_PX = 45
   const EXPANDED_HEIGHT_PX = MIN_HEIGHT_PX + EXPAND_DELTA_PX
 

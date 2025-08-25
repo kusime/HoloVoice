@@ -128,8 +128,6 @@
 </template>
 
 <script setup lang="ts">
-  import { onMounted, onBeforeUnmount, ref, watch, computed, nextTick } from 'vue'
-
   const props = withDefaults(
     defineProps<{
       src: string
