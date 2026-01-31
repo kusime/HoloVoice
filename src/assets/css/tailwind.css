@@ -16,6 +16,9 @@
   }
   body {
     margin: 0;
+    background-color: #09090b;
+    background-image: radial-gradient(circle at 50% 0%, #18181b 0%, #09090b 80%);
+    color: white;
   } /* 兜底，防顶部缝隙 */
 }
 
@@ -24,6 +27,63 @@
   /* 可叠加的层级增强 */
   .glass-elev {
     @apply shadow-[0_10px_40px_-10px_rgba(0,0,0,0.35)] ring-1 ring-base-300/60;
+  }
+
+  /* === High-End Aesthetic Utilities === */
+
+  /* Deep Space Background */
+  /* Deep Space Background (Deprecated for global body style, enabling transition) */
+  .deep-space-bg {
+    /* Kept for utility usage if needed on specific containers */
+    background: transparent;
+  }
+
+  /* Conversational Bubbles */
+  .bubble-ai {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.5);
+  }
+
+  .bubble-user {
+    background: rgba(59, 130, 246, 0.1);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    color: #e0f2fe; /* Light blue text */
+    box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.5);
+  }
+
+  .bubble-active {
+    border-color: rgba(34, 211, 238, 0.5);
+    box-shadow: 0 0 20px rgba(34, 211, 238, 0.1);
+  }
+
+  /* Glass Message Bubble */
+  .glass-bubble {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Input Glow */
+  .input-glow:focus-within {
+    box-shadow: 0 0 20px rgba(34, 211, 238, 0.15); /* Cyan glow */
+    border-color: rgba(34, 211, 238, 0.3);
+  }
+
+  /* Thin Scrollbar */
+  .thin-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .thin-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .thin-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
   }
 }
 

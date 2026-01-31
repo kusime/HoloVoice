@@ -1,11 +1,13 @@
 <template>
   <div class="p-3 md:p-2 w-full bg-transparent">
-    <div class="rounded-3xl">
+    <div
+      class="rounded-3xl border border-white/10 bg-black/20 backdrop-blur-md transition-all duration-300 focus-within:shadow-[0_0_15px_rgba(255,255,255,0.1)] focus-within:border-white/20 input-glow"
+    >
       <!-- 文本输入 -->
       <textarea
         ref="taRef"
         v-model="draftProxy"
-        class="no-scrollbar w-full min-w-0 bg-transparent outline-none focus:outline-none focus:ring-0 border-none shadow-none resize-none overflow-auto placeholder:opacity-60 text-base leading-6 md:leading-7 transition-all duration-200 ease-out relative z-0 cursor-text"
+        class="no-scrollbar w-full min-w-0 bg-transparent outline-none focus:outline-none focus:ring-0 border-none shadow-none resize-none overflow-auto placeholder:text-slate-500 text-slate-200 text-base leading-6 md:leading-7 transition-all duration-200 ease-out relative z-0 cursor-text font-light tracking-wide text-center"
         :placeholder="placeholder"
         autocomplete="off"
         @keydown="onKeydown"
@@ -26,7 +28,7 @@
         :style="{ marginTop: toolbarOffsetPx }"
       >
         <button
-          class="btn btn-ghost btn-sm h-10 rounded-xl px-3 pointer-events-auto"
+          class="btn btn-ghost btn-sm h-10 rounded-xl px-3 pointer-events-auto text-slate-400 hover:text-cyan-300 hover:bg-cyan-500/10"
           title="打开设置"
           type="button"
           aria-label="打开设置"
@@ -36,7 +38,7 @@
         </button>
 
         <button
-          class="btn btn-circle btn-primary btn-sm size-[3em] p-0 pointer-events-auto"
+          class="btn btn-circle btn-primary btn-sm size-[3em] p-0 pointer-events-auto shadow-[0_0_15px_rgba(34,211,238,0.4)] border-none bg-cyan-500 hover:bg-cyan-400 text-black"
           type="button"
           :disabled="!canSend || props.loading"
           @click="handleSend"
@@ -142,20 +144,21 @@
 
 <style scoped>
   /* placeholder 左对齐 */
+  /* placeholder 居中对齐 */
   textarea::-webkit-input-placeholder {
-    text-align: left !important;
+    text-align: center !important;
   }
   textarea:-moz-placeholder {
-    text-align: left !important;
+    text-align: center !important;
   } /* Firefox 18- */
   textarea::-moz-placeholder {
-    text-align: left !important;
+    text-align: center !important;
   } /* Firefox 19+ */
   textarea:-ms-input-placeholder {
-    text-align: left !important;
+    text-align: center !important;
   } /* IE10+ */
   textarea::placeholder {
-    text-align: left !important;
+    text-align: center !important;
   }
 
   /* 隐藏滚动条但保留滚动能力 */

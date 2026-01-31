@@ -1,12 +1,50 @@
 <template>
-  <div
-    class="relative w-full rounded-2xl bg-black/40 border border-white/10 p-4 shadow-xl select-none backdrop-blur-md"
-  >
-    <!-- 顶部控制栏 -->
-    <div class="flex items-center gap-3 mb-4">
+  <div class="relative w-full border-b border-white/10 p-6 select-none bg-transparent">
+    <!-- 文本显示区 -->
+    <div
+      class="relative text-xl leading-[2.0] cursor-text break-words font-medium max-h-80 overflow-y-auto no-scrollbar scroll-smooth"
+      ref="textContainer"
+      @scroll="onContainerScroll"
+    >
+      <!-- 玻璃浮层 (Highlighter) -->
+      <!-- 玻璃浮层 (Highlighter) -->
+      <!-- 玻璃浮层 (Highlighter) -->
+      <!-- Precision Reading Indicator -->
+      <div
+        v-if="highlightStyle"
+        class="absolute left-0 top-0 z-20 h-[2px] bg-cyan-400 rounded-full shadow-[0_0_8px_rgba(34,211,238,0.8)] pointer-events-none transition-all will-change-transform"
+        :style="highlightStyle"
+      ></div>
+
+      <!-- 文字内容 -->
+      <span
+        v-for="(item, idx) in formattedGroups"
+        :key="idx"
+        ref="charRefs"
+        class="relative z-10 inline-block rounded transition-colors duration-200 cursor-pointer"
+        :class="[
+          getGroupColorClass(item, idx === activeIndex),
+          idx === activeIndex
+            ? 'opacity-100 font-semibold drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]'
+            : 'opacity-60 hover:opacity-90',
+          item.type === 'word' ? 'mr-[0.25em]' : '',
+        ]"
+        @click="seek(item.start)"
+      >
+        {{ item.text }}
+      </span>
+
+      <!-- 为了保持排版一致性，保留空格 -->
+      <span v-if="formattedGroups.length === 0" class="opacity-50">Loading lyrics...</span>
+    </div>
+
+    <!-- 底部控制栏 (Moved to Bottom) -->
+    <div
+      class="flex items-center gap-4 mt-6 opacity-80 hover:opacity-100 transition-opacity relative z-10"
+    >
       <!-- 播放/暂停按钮 -->
       <button
-        class="w-10 h-10 rounded-full flex items-center justify-center border border-base-300 bg-base-100 hover:bg-base-200 transition shadow-sm z-10"
+        class="w-10 h-10 rounded-full flex items-center justify-center border border-white/10 bg-white/5 hover:bg-white/10 transition shadow-sm z-10"
         @click="toggle"
       >
         <span v-if="loading" class="loading loading-spinner loading-xs"></span>
@@ -25,55 +63,19 @@
 
       <!-- 进度条 -->
       <div
-        class="flex-1 h-1.5 bg-base-300 rounded-full overflow-hidden relative cursor-pointer"
+        class="flex-1 h-1 bg-white/10 rounded-full overflow-hidden relative cursor-pointer group"
         @click="seekByBar"
       >
         <div
-          class="absolute left-0 top-0 h-full bg-white/70 transition-all duration-100 ease-linear"
+          class="absolute left-0 top-0 h-full bg-cyan-400/80 transition-all duration-100 ease-linear"
+          :class="{ 'animate-pulse-glow': isPlaying }"
           :style="{ width: progress + '%' }"
         ></div>
       </div>
 
-      <span class="text-xs opacity-60 tabular-nums"
+      <span class="text-xs opacity-60 tabular-nums font-mono"
         >{{ fmtTime(currentTime) }} / {{ fmtTime(duration) }}</span
       >
-    </div>
-
-    <!-- 文本显示区 -->
-    <div
-      class="relative text-xl leading-[2.0] cursor-text break-words font-medium max-h-80 overflow-y-auto no-scrollbar scroll-smooth"
-      ref="textContainer"
-      @scroll="onContainerScroll"
-    >
-      <!-- 玻璃浮层 (Highlighter) -->
-      <!-- 玻璃浮层 (Highlighter) -->
-      <!-- 玻璃浮层 (Highlighter) -->
-      <div
-        v-if="highlightStyle"
-        class="absolute left-0 top-0 z-20 h-[3px] w-[1px] origin-left rounded-[2px] bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)] pointer-events-none transition-transform will-change-transform"
-        :style="highlightStyle"
-      ></div>
-
-      <!-- 文字内容 -->
-      <span
-        v-for="(item, idx) in formattedGroups"
-        :key="idx"
-        ref="charRefs"
-        class="relative z-10 inline-block rounded transition-colors duration-200 cursor-pointer"
-        :class="[
-          getGroupColorClass(item, idx === activeIndex),
-          idx === activeIndex
-            ? 'opacity-100 scale-105 origin-bottom drop-shadow-[0_0_8px_rgba(255,255,255,0.6)] font-bold'
-            : 'opacity-60 hover:opacity-100',
-          item.type === 'word' ? 'mr-[0.25em]' : '',
-        ]"
-        @click="seek(item.start)"
-      >
-        {{ item.text }}
-      </span>
-
-      <!-- 为了保持排版一致性，保留空格 -->
-      <span v-if="formattedGroups.length === 0" class="opacity-50">Loading lyrics...</span>
     </div>
 
     <audio
@@ -208,12 +210,12 @@
     return groups
   })
 
-  // 语言颜色配置
+  // 语言颜色配置 (Monochromatic)
   const LANG_STYLES: Record<string, string> = {
-    en: 'text-[#e2e8f0]', // Slate-200
-    zh: 'text-[#fca5a5]', // Red-300
-    ja: 'text-[#93c5fd]', // Blue-300
-    default: 'text-[#cbd5e1]', // Slate-300
+    en: 'text-slate-300',
+    zh: 'text-slate-300',
+    ja: 'text-slate-300',
+    default: 'text-slate-300',
   }
 
   function getGroupColorClass(item: any, isActive: boolean) {
@@ -338,22 +340,18 @@
 
     const target = charRefs.value[activeIndex.value]
 
-    // Calculate duration
-    const item = formattedGroups.value[activeIndex.value]
-    const duration = item.end - item.start
-    const safeDuration = Math.max(duration, 0.15)
-
-    // Position above element
+    // Precision Coordinate Calculation
     const startX = target.offsetLeft
-    const endWidth = target.offsetWidth
-    const startY = target.offsetTop - 0 // Adjust if needed, relative to line box
+    const width = target.offsetWidth
+    // User requested "bottom: -2px" relative to text line.
+    // offsetTop + offsetHeight gives the pure bottom edge of the inline-block span.
+    const startY = target.offsetTop + target.offsetHeight + 2
 
     highlightStyle.value = {
-      // translate to X, Y
-      // scaleX by width (base 1px * endWidth)
-      transform: `translate(${startX}px, ${startY}px) scaleX(${endWidth})`,
-      transitionDuration: `${safeDuration}s`,
-      transitionTimingFunction: 'linear',
+      width: `${width}px`,
+      transform: `translate(${startX}px, ${startY}px)`,
+      transition: 'all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)', // Gliding Precision Motion
+      opacity: 1,
     }
   }
 
@@ -386,5 +384,19 @@
   .glass-overlay {
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
+  }
+  @keyframes pulseGlow {
+    0%,
+    100% {
+      box-shadow: 0 0 5px rgba(34, 211, 238, 0.5);
+      opacity: 1;
+    }
+    50% {
+      box-shadow: 0 0 12px rgba(34, 211, 238, 0.8);
+      opacity: 0.8;
+    }
+  }
+  .animate-pulse-glow {
+    animation: pulseGlow 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
   }
 </style>

@@ -2,19 +2,20 @@
   <!-- 页面主容器：唯一滚动层 -->
   <section
     ref="scroller"
-    class="mx-auto w-full max-w-4xl px-4 md:px-6 h-full flex flex-col overflow-y-auto no-scrollbar"
+    class="relative flex flex-col w-full h-full overflow-y-auto thin-scrollbar"
   >
-    <!-- 消息列表 -->
-    <div ref="listEl" class="flex-1 space-y-4 pb-32 pr-1">
-      <ChatMessage v-for="m in messages" :key="m.id" :msg="m" />
+    <!-- 消息列表容器：居中布局 -->
+    <div class="w-full flex-1 flex flex-col items-center">
+      <!-- 消息列表 -->
+      <div ref="listEl" class="w-full max-w-3xl flex flex-col gap-y-16 px-6 pb-48 pt-12">
+        <ChatMessage v-for="m in displayMessages" :key="m.id" :msg="m" />
+      </div>
     </div>
 
     <!-- 粘底输入条（与上方消息区对齐：max-w-4xl + px-4 md:px-6） -->
-    <div class="sticky inset-x-0 bottom-0 md:bottom-2 z-30">
-      <div class="mx-auto w-full max-w-4xl">
-        <div
-          class="w-full rounded-[2rem] border border-base-300/60 bg-base-100/55 backdrop-blur supports-[backdrop-filter]:backdrop-blur shadow-sm p-2"
-        >
+    <div class="sticky inset-x-0 bottom-0 z-30 pointer-events-none pb-4">
+      <div class="mx-auto w-full max-w-4xl px-4 md:px-6 pointer-events-auto">
+        <div class="w-full">
           <ChatComposer
             class="w-full"
             v-model:draft="form.text"
@@ -24,8 +25,8 @@
           />
         </div>
 
-        <p class="mt-1 text-center text-xs opacity-50">
-          HoloVoice · © 2025 Kusime@GPT5 · MIT License · Powered by GPT-SoVITS
+        <p class="mt-2 text-center text-[10px] tracking-widest uppercase opacity-30 font-light">
+          HoloVoice · Intelligent Neural Audio
         </p>
       </div>
     </div>
@@ -41,7 +42,7 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, reactive, nextTick, watch, onMounted, onBeforeUnmount } from 'vue'
+  import { ref, reactive, nextTick, watch, onMounted, onBeforeUnmount, computed } from 'vue'
   import ChatComposer from '@/components/chat/ChatComposer.vue'
   import ChatMessage, { type ChatMsg } from '@/components/chat/ChatMessage.vue'
   import SettingsDrawer from '@/components/SettingsDrawer.vue'
@@ -99,6 +100,26 @@
 
   /** 消息数据与滚动节点 */
   const messages = ref<ChatMsg[]>([])
+
+  // Filter out redundant user messages
+  const displayMessages = computed(() => {
+    return messages.value.filter((msg, idx, arr) => {
+      // Always show assistant messages
+      if (msg.role === 'assistant') return true
+
+      // For user messages, check if next message is a valid assistant response
+      const next = arr[idx + 1]
+      if (next && next.role === 'assistant') {
+        // Hide user message if response is pending or done (because we show it in the card)
+        // Show user message if response failed (so user didn't lose text)
+        return next.status === 'error'
+      }
+
+      // Default show
+      return true
+    })
+  })
+
   const listEl = ref<HTMLDivElement | null>(null)
   const scroller = ref<HTMLElement | null>(null)
   const loading = ref(false)
@@ -191,6 +212,7 @@
       status: 'pending',
       time: now(),
       autoPlay: true,
+      text, // Pass text immediately for "Card" view
     })
     scrollToBottom()
 
