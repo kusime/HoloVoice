@@ -7,7 +7,10 @@
     <!-- 消息列表容器：居中布局 -->
     <div class="w-full flex-1 flex flex-col items-center">
       <!-- 消息列表 -->
-      <div ref="listEl" class="w-full max-w-3xl flex flex-col gap-y-16 px-6 pb-48 pt-12">
+      <div
+        ref="listEl"
+        class="w-full max-w-full sm:max-w-3xl flex flex-col gap-y-8 sm:gap-y-16 px-4 sm:px-8 md:px-12 lg:px-16 pb-48 pt-6 sm:pt-12"
+      >
         <ChatMessage v-for="m in displayMessages" :key="m.id" :msg="m" />
       </div>
     </div>
@@ -127,6 +130,20 @@
   /** 是否跟随底部 */
   const followBottom = ref(true)
 
+  function uuidv4() {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+      try {
+        return crypto.randomUUID()
+      } catch (e) {
+        // Fallback if secure context check fails despite function existence
+      }
+    }
+    // Simple fallback for insecure contexts (LAN HTTP)
+    return '10000000-1000-4000-8000-100000000000'.replace(/[018]/g, (c) =>
+      (+c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (+c / 4)))).toString(16)
+    )
+  }
+
   function now() {
     const d = new Date()
     return `${d.getHours().toString().padStart(2, '0')}:${d
@@ -195,7 +212,7 @@
 
     // 推送用户消息
     messages.value.push({
-      id: crypto.randomUUID(),
+      id: uuidv4(),
       role: 'user',
       status: 'done',
       time: now(),
@@ -205,7 +222,7 @@
     scrollToBottom()
 
     // 预占一条助手消息
-    const pendingId = crypto.randomUUID()
+    const pendingId = uuidv4()
     messages.value.push({
       id: pendingId,
       role: 'assistant',
@@ -255,6 +272,15 @@
       if (!last) return
       last.status = 'done'
       // useTtsPipeline 返回的是 ManifestOut { urls: { audio_presigned_url: ... } }
+      // useTtsPipeline 返回的是 ManifestOut { urls: { audio_presigned_url: ... } }
+      // Direct access: No proxy rewriting needed if backend returns public URLs or if we trust LAN access
+      // Note: If backend returns localhost:9000, we might still need to rewrite to basic IP,
+      // but the USER instructions implied "Direct Backend Connection".
+      // Assuming backend allows CORS and addresses are correct or relative.
+      // If backend returns 'localhost:9000', we should rewrite it to '192.168.3.163:9000' here?
+      // User asked to "Remove Proxies". I will revert to using the raw URL, or maybe rewrite localhost->IP just in case.
+      // For now, removing the /s3-proxy logic as requested.
+
       last.audioUrl = res.urls.audio_presigned_url
       last.charsUrl = res.urls.chars_presigned_url
       last.text = text

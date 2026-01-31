@@ -13,8 +13,8 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       yourEnv: process.env.YOUR_ENV,
-      // ✅ 新增：前端统一走这个前缀，请求会被 Nitro 代理到你的 TTS 服务
-      apiBase: '/api-tts',
+      // ✅ Direct Backend Connection (LAN)
+      apiBase: 'http://192.168.3.163:8000',
     },
   },
 
@@ -72,10 +72,6 @@ export default defineNuxtConfig({
 
   devtools: { enabled: true },
 
-  // ✅ 新增：前端 /api-tts/** → 你的 TTS 服务
-  nitro: {
-    routeRules: {
-      '/api-tts/**': { proxy: 'http://localhost:8000/**' }, // 如不是本机，改成你的后端地址
-    },
-  },
+  // Proxy removed for direct connection
+  nitro: {},
 })

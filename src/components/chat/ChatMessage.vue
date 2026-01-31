@@ -4,11 +4,11 @@
   >
     <!-- Centered List Item Style -->
     <div
-      class="w-full max-w-3xl relative group border-b border-white/5 py-12 transition-colors duration-300 hover:bg-white/[0.02] rounded-xl px-4 -mx-4"
+      class="w-full max-w-full sm:max-w-3xl relative group border-b border-white/5 py-6 sm:py-12 transition-colors duration-300 hover:bg-white/[0.02] rounded-xl px-4 -mx-4"
     >
       <!-- Floating Utilities (Visible on Hover) -->
       <div
-        class="absolute right-0 top-4 z-50 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform scale-95 group-hover:scale-100 origin-right pointer-events-auto"
+        class="relative flex justify-end gap-2 mb-2 sm:absolute sm:right-0 sm:top-4 sm:mb-0 z-50 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 transform scale-100 sm:scale-95 sm:group-hover:scale-100 origin-right pointer-events-auto"
       >
         <button
           class="p-2 rounded-lg bg-black/40 hover:bg-black/60 text-slate-400 hover:text-white transition-colors border border-white/10 shadow-lg backdrop-blur"
@@ -42,7 +42,7 @@
         <!-- Matches final font style exactly -->
         <p
           v-if="msg.text"
-          class="text-xl leading-8 font-medium text-[#FAFAFA] font-sans tracking-tight opacity-40"
+          class="text-base sm:text-xl leading-normal sm:leading-8 font-medium text-[#FAFAFA] font-sans tracking-tight opacity-40"
         >
           {{ msg.text }}
         </p>
@@ -69,7 +69,9 @@
 
       <!-- 4) Text Message (User Input displayed in list) -->
       <div v-else class="w-full opacity-50 pl-2">
-        <p class="text-xl leading-8 font-medium text-slate-500 font-sans tracking-tight">
+        <p
+          class="text-base sm:text-xl leading-normal sm:leading-8 font-medium text-slate-500 font-sans tracking-tight"
+        >
           {{ msg.text }}
         </p>
       </div>
