@@ -234,6 +234,7 @@
       last.status = 'done'
       // useTtsPipeline 返回的是 ManifestOut { urls: { audio_presigned_url: ... } }
       last.audioUrl = res.urls.audio_presigned_url
+      last.charsUrl = res.urls.chars_presigned_url
       last.text = text
     } catch (e: any) {
       const last = messages.value.find((m) => m.id === pendingId)

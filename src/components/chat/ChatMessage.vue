@@ -22,7 +22,12 @@
           </p>
         </div>
 
-        <!-- 3) 语音气泡 -->
+        <!-- 3a) 卡拉OK气泡 -->
+        <div v-else-if="msg.charsUrl && msg.audioUrl" class="w-[min(88vw,42rem)]">
+          <KaraokeBubble :src="msg.audioUrl" :chars-src="msg.charsUrl" :autoplay="!!msg.autoPlay" />
+        </div>
+
+        <!-- 3b) 普通语音气泡 (fallback) -->
         <div
           v-else-if="msg.audioUrl"
           class="rounded-2xl bg-base-200/70 border border-base-300/50 p-3 shadow w-[min(88vw,42rem)]"
@@ -62,12 +67,14 @@
 
 <script setup lang="ts">
   import AudioBubble from '@/components/chat/AudioBubble.vue'
+  import KaraokeBubble from '@/components/chat/KaraokeBubble.vue'
 
   export interface ChatMsg {
     id?: string
     role: 'user' | 'assistant'
     text?: string
     audioUrl?: string
+    charsUrl?: string
     status?: 'pending' | 'done' | 'error'
     errorMsg?: string
     time?: string
