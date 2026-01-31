@@ -38,13 +38,13 @@
         <button
           class="btn btn-circle btn-primary btn-sm size-[3em] p-0 pointer-events-auto"
           type="button"
-          :disabled="!canSend || loading"
+          :disabled="!canSend || props.loading"
           @click="handleSend"
           aria-label="发送"
         >
           <!-- 一个右箭头，通过旋转成为“向上” -->
           <i
-            v-if="!loading"
+            v-if="!props.loading"
             class="la la-arrow-right text-lg transition-transform duration-200 ease-out"
             :style="{ transform: canSend ? 'rotate(-90deg)' : 'rotate(0deg)' }"
           ></i>
@@ -61,10 +61,10 @@
   import { computed, ref, watch, onMounted } from 'vue'
   import type { PipelinePayload } from '~/types/pipeline'
 
-  const props = defineProps<{ draft?: string; textLang?: string }>()
+  const props = defineProps<{ draft?: string; loading?: boolean }>()
   const emit = defineEmits<{
     (e: 'update:draft', v: string): void
-    (e: 'update:textLang', v: string): void
+
     (e: 'send'): void
     (e: 'open-settings'): void
   }>()
@@ -75,10 +75,6 @@
   const draftProxy = computed<string>({
     get: () => props.draft ?? '',
     set: (v) => emit('update:draft', v ?? ''),
-  })
-  const textLangProxy = computed<string>({
-    get: () => props.textLang ?? 'zh',
-    set: (v) => emit('update:textLang', v ?? 'zh'),
   })
 
   /** —— 可调参数 —— */
@@ -126,48 +122,12 @@
 
   /** 发送逻辑（与你现有服务兼容） */
   const canSend = computed(() => (draftProxy.value ?? '').toString().trim().length > 0)
-  const loading = ref(false)
+
   const error = ref<string | null>(null)
 
-  const defaults = {
-    ref_audio_path: 'z.refs/main.wav',
-    aux_ref_audio_paths: [] as string[],
-    prompt_text: '这是最后一件了吧？嗯，这里确实有七十件。',
-    prompt_lang: 'zh',
-    text_split_method: 'cut5',
-    batch_size: 60,
-    batch_threshold: 0.75,
-    split_bucket: true,
-    parallel_infer: true,
-    fragment_interval: 0.27,
-    speed_factor: 1.05,
-    top_k: 6,
-    top_p: 1.0,
-    temperature: 0.65,
-    repetition_penalty: 1.25,
-    sample_steps: 32,
-    super_sampling: false,
-    media_type: 'wav',
-    streaming_mode: false,
-    seed: -1,
-  }
-
-  async function handleSend() {
-    if (!canSend.value || loading.value) return
-    loading.value = true
-    error.value = null
-    try {
-      const text = (draftProxy.value ?? '').toString().trim()
-      const lang = (textLangProxy.value ?? 'zh') as string
-      const payload: PipelinePayload = { text, text_lang: lang, ...defaults }
-      const call = useTtsPipeline()
-      await call(payload)
-      emit('send')
-    } catch (e: any) {
-      error.value = e?.message || String(e)
-    } finally {
-      loading.value = false
-    }
+  function handleSend() {
+    if (!canSend.value || props.loading) return
+    emit('send')
   }
 
   function onKeydown(e: KeyboardEvent) {

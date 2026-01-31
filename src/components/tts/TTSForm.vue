@@ -11,14 +11,6 @@
 
       <div class="grid grid-cols-2 gap-4">
         <div>
-          <label class="label"><span class="label-text">text_lang</span></label>
-          <select v-model="form.text_lang" class="select select-bordered w-full">
-            <option value="ja">ja</option>
-            <option value="zh">zh</option>
-            <option value="en">en</option>
-          </select>
-        </div>
-        <div>
           <label class="label"><span class="label-text">prompt_lang（参考文本语言）</span></label>
           <select v-model="form.prompt_lang" class="select select-bordered w-full">
             <option value="ja">ja</option>
@@ -41,12 +33,12 @@
 <script setup lang="ts">
   type FormShape = {
     text: string
-    text_lang: string
+
     prompt_lang: string
     prompt_text: string
   }
 
   const form = defineModel<FormShape>('form', {
-    default: { text: '', text_lang: 'ja', prompt_lang: 'ja', prompt_text: '' },
+    default: { text: '', prompt_lang: 'ja', prompt_text: '' },
   })
 </script>

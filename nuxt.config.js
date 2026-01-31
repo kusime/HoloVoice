@@ -75,7 +75,7 @@ export default defineNuxtConfig({
   // ✅ 新增：前端 /api-tts/** → 你的 TTS 服务
   nitro: {
     routeRules: {
-      '/api-tts/**': { proxy: 'http://127.0.0.1:9880/**' }, // 如不是本机，改成你的后端地址
+      '/api-tts/**': { proxy: 'http://localhost:8000/**' }, // 如不是本机，改成你的后端地址
     },
   },
 })

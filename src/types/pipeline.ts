@@ -3,7 +3,7 @@ export type LangCode = 'zh' | 'en' | 'ja' | string
 
 export interface PipelinePayload {
   text: string
-  text_lang: LangCode
+
   ref_audio_path?: string | null
   aux_ref_audio_paths?: string[]
   prompt_text?: string | null

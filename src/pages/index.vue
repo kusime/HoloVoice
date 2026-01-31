@@ -18,7 +18,7 @@
           <ChatComposer
             class="w-full"
             v-model:draft="form.text"
-            v-model:textLang="form.text_lang"
+            :loading="loading"
             @send="handleSend"
             @open-settings="open = true"
           />
@@ -45,11 +45,11 @@
   import ChatComposer from '@/components/chat/ChatComposer.vue'
   import ChatMessage, { type ChatMsg } from '@/components/chat/ChatMessage.vue'
   import SettingsDrawer from '@/components/SettingsDrawer.vue'
-  import { useTTSApi } from '@/composables/useTTSApi'
+  import { useTtsPipeline } from '@/composables/useTtsPipeline'
   import { usePresets } from '@/composables/usePresets'
   import { ensureAudioWarmup } from '@/utils/audio-warmup'
 
-  const { synthesize } = useTTSApi()
+  const callPipeline = useTtsPipeline()
   const { save } = usePresets('tts-presets')
 
   /** 设置抽屉开关 */
@@ -59,7 +59,7 @@
   const form = reactive({
     // 文本与语言
     text: '',
-    text_lang: 'zh',
+
     prompt_lang: 'zh',
     // 默认提示文本（中文）
     prompt_text: '这是最后一件了吧？嗯，这里确实有七十件。',
@@ -101,6 +101,7 @@
   const messages = ref<ChatMsg[]>([])
   const listEl = ref<HTMLDivElement | null>(null)
   const scroller = ref<HTMLElement | null>(null)
+  const loading = ref(false)
 
   /** 是否跟随底部 */
   const followBottom = ref(true)
@@ -169,7 +170,7 @@
   /** 发送处理 */
   async function handleSend() {
     const text = form.text.trim()
-    if (!text) return
+    if (!text || loading.value) return
 
     // 推送用户消息
     messages.value.push({
@@ -193,16 +194,16 @@
     })
     scrollToBottom()
 
+    loading.value = true
     try {
-      if (!form.text_lang) throw new Error('请选择文本语言（text_lang）。')
       if (!form.ref_audio_path || !form.ref_audio_path.trim()) {
         throw new Error('请先在「设置 → 参考音频」里设置 ref_audio_path')
       }
 
       // 开始合成
-      const url = await synthesize({
+      // 注意：useTtsPipeline 需要完整的 PipelinePayload
+      const res = await callPipeline({
         text,
-        text_lang: form.text_lang,
         ref_audio_path: form.ref_audio_path,
         aux_ref_audio_paths: form.aux_ref_audio_paths,
         prompt_text: form.prompt_text,
@@ -222,7 +223,7 @@
         super_sampling: form.super_sampling,
         media_type: form.media_type,
         streaming_mode: form.streaming_mode,
-        seed: keepRandom.value ? -1 : seedInput.value ?? -1,
+        seed: keepRandom.value ? -1 : (seedInput.value ?? -1),
       })
 
       // ✅ 真正播放前再确保一次预热（吃默认 0.4s）
@@ -231,10 +232,11 @@
       const last = messages.value.find((m) => m.id === pendingId)
       if (!last) return
       last.status = 'done'
-      last.audioUrl = url
+      // useTtsPipeline 返回的是 ManifestOut { urls: { audio_presigned_url: ... } }
+      last.audioUrl = res.urls.audio_presigned_url
       last.text = text
     } catch (e: any) {
-      const last = messages.value[messages.value.length - 1]
+      const last = messages.value.find((m) => m.id === pendingId)
       if (last) {
         last.status = 'error'
         last.errorMsg = e?.message || '合成失败'
@@ -243,6 +245,7 @@
         open.value = true
       }
     } finally {
+      loading.value = false
       scrollToBottom()
     }
   }
@@ -251,7 +254,7 @@
   function savePreset() {
     save(new Date().toLocaleString(), {
       ...form,
-      seed: keepRandom.value ? -1 : seedInput.value ?? -1,
+      seed: keepRandom.value ? -1 : (seedInput.value ?? -1),
     })
   }
 </script>
